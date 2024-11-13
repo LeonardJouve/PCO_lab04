@@ -9,6 +9,7 @@
 
 #include "locomotive.h"
 #include "launchable.h"
+#include "sharedstation.h"
 #include "sharedsectioninterface.h"
 
 /**
@@ -21,7 +22,7 @@ public:
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
      */
-    LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SharedSectionInterface> sharedSection /*, autres paramètres éventuels */) : loco(loco), sharedSection(sharedSection) {
+    LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SharedSectionInterface> sharedSection, SharedStation station, std::shared_ptr<PcoSemaphore> sem, std::shared_ptr<PcoMutex> mutex /*, autres paramètres éventuels */) : loco(loco), sharedSection(sharedSection), station(station), sem(sem), mutex(mutex) {
         // Eventuel code supplémentaire du constructeur
     }
 
@@ -56,6 +57,10 @@ protected:
      *
      * Par exemple la priorité ou le parcours
      */
+    SharedStation station;
+
+    std::shared_ptr<PcoSemaphore> sem;
+    std::shared_ptr<PcoMutex> mutex;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H

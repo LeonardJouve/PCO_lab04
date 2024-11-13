@@ -9,5 +9,21 @@
 
 #include "sharedstation.h"
 
-SharedStation::SharedStation(int nbTrains, int nbTours)
+SharedStation::SharedStation(int numeroContactGare, int nbTrains, int nbTours) : numeroContactGare(numeroContactGare), nbTrains(nbTrains), n(nbTours), compteurTour(0)
 {}
+
+int SharedStation::getNumeroContactGare() {
+    return numeroContactGare;
+}
+
+int SharedStation::getNbTrains() {
+    return nbTrains;
+}
+
+void SharedStation::incrementeCompteurTour() {
+    ++compteurTour;
+}
+
+bool SharedStation::doitArreter() {
+    return (compteurTour % n) == 0;
+}

@@ -16,7 +16,7 @@ Locomotive::Locomotive() :
 
 }
 
-Locomotive::Locomotive(int numero, int vitesse) :
+Locomotive::Locomotive(int numero, int vitesse, int n) :
     _numero(numero),
     _vitesse(vitesse),
     _enFonction(false)

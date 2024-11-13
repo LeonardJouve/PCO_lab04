@@ -6,6 +6,7 @@
 
 #include "locomotivebehavior.h"
 #include "ctrain_handler.h"
+#include "pcothread.h"
 
 void LocomotiveBehavior::run()
 {
@@ -23,8 +24,29 @@ void LocomotiveBehavior::run()
     while(true) {
         // On attend qu'une locomotive arrive sur le contact 1.
         // Pertinent de faire ça dans les deux threads? Pas sûr...
-        attendre_contact(1);
-        loco.afficherMessage("J'ai atteint le contact 1");
+        attendre_contact(station.getNumeroContactGare());
+        station.incrementeCompteurTour();
+
+        if (station.doitArreter()) {
+            loco.arreter();
+            sem.release();
+            mutex.lock();
+            for (int i = 0; i < station.getNbTrains(); ++i) {
+                sem.require();
+            }
+
+            for (int i = 0; i < station.getNbTrains(); ++i) {
+                sem.release();
+            }
+            mutex.unlock();
+
+            PcoThread::thisThread->usleep(2_000_000);
+            sem.release();
+            loco.inverserSens();
+            loco.demarrer();
+        }
+
+        loco.afficherMessage("J'ai atteint la gare " + station.getNumeroContactGare());
     }
 }
 
