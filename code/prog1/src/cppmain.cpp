@@ -98,14 +98,20 @@ int cmain()
      ********************/
 
     // Création de la section partagée
-    std::shared_ptr<SharedSectionInterface> sharedSection = std::make_shared<SharedSection>();
+    std::shared_ptr<SharedSectionInterface> sharedSection = std::make_shared<SharedSection>(2, 22, 21, 1);
+    struct SharedSectionAiguillages sharedSectionAiguillagesA = {7, 6, 32, 33, true};
+    struct SharedSectionAiguillages sharedSectionAiguillagesB = {3, 2, 29, 30, false};
+
     std::shared_ptr<PcoSemaphore> sem = std::make_shared<PcoSemaphore>(0);
     std::shared_ptr<PcoMutex> mutex = std::make_shared<PcoMutex>();
 
+    std::shared_ptr<std::atomic<int>> amountWaiting = std::make_shared<std::atomic<int>>(0);
     // Création du thread pour la loco 0
-    std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoA, sharedSection, {10, 2, 5}, sem, mutex /*, autres paramètres ...*/);
+    SharedStation stationA(14, 2, 2);
+    std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoA, sharedSection, stationA, sem, mutex, amountWaiting, sharedSectionAiguillagesA /*, autres paramètres ...*/);
     // Création du thread pour la loco 1
-    std::unique_ptr<Launchable> locoBehaveB = std::make_unique<LocomotiveBehavior>(locoB, sharedSection, {14, 2, 6}, sem, mutex /*, autres paramètres ...*/);
+    SharedStation stationB(10, 2, 1);
+    std::unique_ptr<Launchable> locoBehaveB = std::make_unique<LocomotiveBehavior>(locoB, sharedSection, stationB, sem, mutex, amountWaiting, sharedSectionAiguillagesB /*, autres paramètres ...*/);
 
     // Lanchement des threads
     afficher_message(qPrintable(QString("Lancement thread loco A (numéro %1)").arg(locoA.numero())));

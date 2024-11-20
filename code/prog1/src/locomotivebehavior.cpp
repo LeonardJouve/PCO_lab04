@@ -6,7 +6,7 @@
 
 #include "locomotivebehavior.h"
 #include "ctrain_handler.h"
-#include "pcothread.h"
+#include "pcosynchro/pcothread.h"
 
 void LocomotiveBehavior::run()
 {
@@ -15,38 +15,47 @@ void LocomotiveBehavior::run()
     loco.demarrer();
     loco.afficherMessage("Ready!");
 
-    /* A vous de jouer ! */
-
-    // Vous pouvez appeler les méthodes de la section partagée comme ceci :
-    //sharedSection->access(loco);
-    //sharedSection->leave(loco);
-
     while(true) {
-        // On attend qu'une locomotive arrive sur le contact 1.
-        // Pertinent de faire ça dans les deux threads? Pas sûr...
         attendre_contact(station.getNumeroContactGare());
         station.incrementeCompteurTour();
+        loco.afficherMessage(QString("J'ai atteint la gare %1").arg(station.getNumeroContactGare()));
 
         if (station.doitArreter()) {
             loco.arreter();
-            sem.release();
-            mutex.lock();
+            ++(*amountWaiting);
+            loco.afficherMessage(QString("%1").arg(*amountWaiting));
+            sem->release();
+            mutex->lock();
             for (int i = 0; i < station.getNbTrains(); ++i) {
-                sem.require();
+                sem->acquire();
             }
 
-            for (int i = 0; i < station.getNbTrains(); ++i) {
-                sem.release();
+            if (*amountWaiting != 1) {
+                for (int i = 0; i < station.getNbTrains(); ++i) {
+                    sem->release();
+                }
             }
-            mutex.unlock();
+            --(*amountWaiting);
+            mutex->unlock();
 
-            PcoThread::thisThread->usleep(2_000_000);
-            sem.release();
+            PcoThread::thisThread()->usleep(2'000'000);
             loco.inverserSens();
+            sensHoraire = !sensHoraire;
             loco.demarrer();
+            attendre_contact(station.getNumeroContactGare()); // ignore hitting station because of inhertia
         }
 
-        loco.afficherMessage("J'ai atteint la gare " + station.getNumeroContactGare());
+        int contactEntree = sensHoraire ? sharedSectionAiguillages.contactPremierDebut : sharedSectionAiguillages.contactSecondDebut;
+        int contactSortie = sensHoraire ? sharedSectionAiguillages.contactSecondFin : sharedSectionAiguillages.contactPremierFin;
+        int directionPremierAiguillage = sharedSectionAiguillages.doitChangerVoie ? TOUT_DROIT : DEVIE;
+        int directionSecondAiguillage = sharedSectionAiguillages.doitChangerVoie ? DEVIE : TOUT_DROIT;
+        
+        attendre_contact(contactEntree);
+        sharedSection->access(loco);
+        diriger_aiguillage(sharedSection->getPremierAiguillage(sensHoraire), directionPremierAiguillage, 0);
+        diriger_aiguillage(sharedSection->getSecondAiguillage(sensHoraire), directionSecondAiguillage, 0);
+        attendre_contact(contactSortie);
+        sharedSection->leave(loco);
     }
 }
 

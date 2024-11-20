@@ -27,7 +27,14 @@ public:
      * @brief SharedSection Constructeur de la classe qui représente la section partagée.
      * Initialisez vos éventuels attributs ici, sémaphores etc.
      */
-    SharedSection() {
+    SharedSection(int premierAiguillageHoraire, int secondAiguillageHoraire, int premierAiguillageAntiHoraire, int secondAiguillageAntiHoraire) : 
+        mutex(),
+        isUsed(false),
+        premierAiguillageHoraire(premierAiguillageHoraire),
+        secondAiguillageHoraire(secondAiguillageHoraire),
+        premierAiguillageAntiHoraire(premierAiguillageAntiHoraire),
+        secondAiguillageAntiHoraire(secondAiguillageAntiHoraire)
+    {
         // TODO
     }
 
@@ -41,6 +48,14 @@ public:
      */
     void access(Locomotive &loco) override {
         // TODO
+        int vitesse = loco.vitesse();
+        if (isUsed) {
+            arreter_loco(loco.numero());
+        }
+
+        mutex.lock();
+        isUsed = true;
+        loco.fixerVitesse(vitesse);
 
         // Exemple de message dans la console globale
         afficher_message(qPrintable(QString("The engine no. %1 accesses the shared section.").arg(loco.numero())));
@@ -52,18 +67,33 @@ public:
      * @param loco La locomotive qui quitte la section partagée
      */
     void leave(Locomotive& loco) override {
+        isUsed = false;
+        mutex.unlock();
         // TODO
 
         // Exemple de message dans la console globale
         afficher_message(qPrintable(QString("The engine no. %1 leaves the shared section.").arg(loco.numero())));
     }
 
+    int getPremierAiguillage(bool sensHoraire) override {
+        return sensHoraire ? premierAiguillageHoraire : premierAiguillageAntiHoraire;
+    }
+
+    int getSecondAiguillage(bool sensHoraire) override {
+        return sensHoraire ? secondAiguillageHoraire : secondAiguillageAntiHoraire;
+    }
 private:
 
     /* A vous d'ajouter ce qu'il vous faut */
 
     // Méthodes privées ...
     // Attribut privés ...
+    PcoMutex mutex;
+    bool isUsed;
+    int premierAiguillageHoraire;
+    int secondAiguillageHoraire;
+    int premierAiguillageAntiHoraire;
+    int secondAiguillageAntiHoraire;
 };
 
 
