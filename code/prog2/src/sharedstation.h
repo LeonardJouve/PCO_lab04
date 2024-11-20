@@ -6,13 +6,21 @@
 class SharedStation
 {
 public:
-    SharedStation(int nbTrains, int nbTours);
+    SharedStation(int numeroContactGare, int nbTrains, int nbTours);
 
     /* Implémentez toute la logique que vous avez besoin pour que les locomotives
      * s'attendent correctement à la station */
+    int getNumeroContactGare();
+    int getNbTrains();
+    void incrementeCompteurTour();
+    bool doitArreter();
 
 private:
     /* TODO */
+    int numeroContactGare; /* numero du point de contact de la gare */
+    int nbTrains; /* nombre de train à attendre */
+    int n; /* nombre de tour avant de faire demi-tour */
+    int compteurTour; /* nombre de tour effectués */
 };
 
 #endif // SHARED_STATION_H

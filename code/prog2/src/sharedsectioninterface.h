@@ -2,13 +2,21 @@
 //   / _ \/ ___/ __ \  |_  |/ _ \|_  / / / //
 //  / ___/ /__/ /_/ / / __// // / __/_  _/ //
 // /_/   \___/\____/ /____/\___/____//_/   //
-//                                         //
+//
 // Rien à modifier ici
 
 #ifndef SHAREDSECTIONINTERFACE_H
 #define SHAREDSECTIONINTERFACE_H
 
 #include "locomotive.h"
+
+struct SharedSectionAiguillages {
+    int contactPremierDebut;
+    int contactPremierFin;
+    int contactSecondDebut;
+    int contactSecondFin;
+    bool doitChangerVoie;
+};
 
 /**
  * @brief La classe SharedSectionInterface est une interface (classe abstraite pure) qui définit
@@ -55,6 +63,9 @@ public:
      */
     virtual void togglePriorityMode() = 0;
 
+    virtual int getPremierAiguillage(bool sensHoraire) = 0;
+
+    virtual int getSecondAiguillage(bool sensHoraire) = 0;
 };
 
 #endif // SHAREDSECTIONINTERFACE_H
