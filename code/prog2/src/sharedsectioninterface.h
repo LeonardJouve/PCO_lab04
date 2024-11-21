@@ -10,14 +10,6 @@
 
 #include "locomotive.h"
 
-struct SharedSectionAiguillages {
-    int contactPremierDebut;
-    int contactPremierFin;
-    int contactSecondDebut;
-    int contactSecondFin;
-    bool doitChangerVoie;
-};
-
 /**
  * @brief La classe SharedSectionInterface est une interface (classe abstraite pure) qui définit
  * trois méthodes, request, getAccess et leave afin de gérer l'accès à une section partagée d'un
@@ -62,10 +54,6 @@ public:
      * @brief togglePriorityMode Méthode à appeler pour changer le mode de priorité
      */
     virtual void togglePriorityMode() = 0;
-
-    virtual int getPremierAiguillage(bool sensHoraire) = 0;
-
-    virtual int getSecondAiguillage(bool sensHoraire) = 0;
 };
 
 #endif // SHAREDSECTIONINTERFACE_H

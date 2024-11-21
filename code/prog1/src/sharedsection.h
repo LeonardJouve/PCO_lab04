@@ -15,6 +15,19 @@
 #include "ctrain_handler.h"
 #include "sharedsectioninterface.h"
 
+#ifndef SHARED_SECTION_STRUCT_1
+#define SHARED_SECTION_STRUCT_1
+
+struct SharedSectionAiguillages1 {
+    int contactPremierDebut;
+    int contactPremierFin;
+    int contactSecondDebut;
+    int contactSecondFin;
+    bool doitChangerVoie;
+};
+
+#endif
+
 /**
  * @brief La classe SharedSection implémente l'interface SharedSectionInterface qui
  * propose les méthodes liées à la section partagée.
@@ -28,7 +41,7 @@ public:
      * Initialisez vos éventuels attributs ici, sémaphores etc.
      */
     SharedSection(int premierAiguillageHoraire, int secondAiguillageHoraire, int premierAiguillageAntiHoraire, int secondAiguillageAntiHoraire) : 
-        mutex(),
+        mutex(1),
         isUsed(false),
         premierAiguillageHoraire(premierAiguillageHoraire),
         secondAiguillageHoraire(secondAiguillageHoraire),
@@ -53,7 +66,7 @@ public:
             arreter_loco(loco.numero());
         }
 
-        mutex.lock();
+        mutex.acquire();
         isUsed = true;
         loco.fixerVitesse(vitesse);
 
@@ -68,7 +81,7 @@ public:
      */
     void leave(Locomotive& loco) override {
         isUsed = false;
-        mutex.unlock();
+        mutex.release();
         // TODO
 
         // Exemple de message dans la console globale
@@ -88,7 +101,7 @@ private:
 
     // Méthodes privées ...
     // Attribut privés ...
-    PcoMutex mutex;
+    PcoSemaphore mutex;
     bool isUsed;
     int premierAiguillageHoraire;
     int secondAiguillageHoraire;

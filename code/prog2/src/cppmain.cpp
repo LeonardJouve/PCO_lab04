@@ -6,6 +6,8 @@
 
 #include "ctrain_handler.h"
 
+#include <ctime>
+#include <cstdlib>
 #include "locomotive.h"
 #include "locomotivebehavior.h"
 #include "sharedsectioninterface.h"
@@ -99,21 +101,24 @@ int cmain()
      * Threads des locos *
      ********************/
 
+    std::srand(std::time(nullptr));
+
     // Création de la section partagée
-    std::shared_ptr<SharedSectionInterface> sharedSection = std::make_shared<SharedSection>(2, 22, 21, 1);
-    struct SharedSectionAiguillages sharedSectionAiguillagesA = {7, 6, 32, 33, true};
-    struct SharedSectionAiguillages sharedSectionAiguillagesB = {3, 2, 29, 30, false};
+    std::shared_ptr<SharedSectionInterface> sharedSection = std::make_shared<SharedSection>();
+    struct SharedSectionContacts sharedSectionContactsA = {15, 7, 6, 24, 32, 33, true};
+    struct SharedSectionContacts sharedSectionContactsB = {11, 3, 2, 21, 29, 30, false};
+    struct SharedSectionAiguillages sharedSectionAiguillages = {2, 22, 21, 1};
 
     std::shared_ptr<PcoSemaphore> sem = std::make_shared<PcoSemaphore>(0);
-    std::shared_ptr<PcoMutex> mutex = std::make_shared<PcoMutex>();
+    std::shared_ptr<PcoSemaphore> mutex = std::make_shared<PcoSemaphore>(1);
 
     std::shared_ptr<std::atomic<int>> amountWaiting = std::make_shared<std::atomic<int>>(0);
     // Création du thread pour la loco 0
-    SharedStation stationA(14, 2, 2);
-    std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoA, sharedSection, stationA, sem, mutex, amountWaiting, sharedSectionAiguillagesA /*, autres paramètres ...*/);
+    SharedStation stationA(23, 2, 2);
+    std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoA, sharedSection, stationA, sem, mutex, amountWaiting, sharedSectionContactsA, sharedSectionAiguillages /*, autres paramètres ...*/);
     // Création du thread pour la loco 1
-    SharedStation stationB(10, 2, 1);
-    std::unique_ptr<Launchable> locoBehaveB = std::make_unique<LocomotiveBehavior>(locoB, sharedSection, stationB, sem, mutex, amountWaiting, sharedSectionAiguillagesB /*, autres paramètres ...*/);
+    SharedStation stationB(19, 2, 2);
+    std::unique_ptr<Launchable> locoBehaveB = std::make_unique<LocomotiveBehavior>(locoB, sharedSection, stationB, sem, mutex, amountWaiting, sharedSectionContactsB, sharedSectionAiguillages /*, autres paramètres ...*/);
 
     // Lanchement des threads
     afficher_message(qPrintable(QString("Lancement thread loco A (numéro %1)").arg(locoA.numero())));

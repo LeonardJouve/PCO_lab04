@@ -15,6 +15,28 @@
 #include "ctrain_handler.h"
 #include "sharedsectioninterface.h"
 
+#ifndef SHARED_SECTION_STRUCT_2
+#define SHARED_SECTION_STRUCT_2
+
+struct SharedSectionContacts {
+    int contactPremierRequest;
+    int contactPremierDebut;
+    int contactPremierFin;
+    int contactSecondRequest;
+    int contactSecondDebut;
+    int contactSecondFin;
+    bool doitChangerVoie;
+};
+
+struct SharedSectionAiguillages {
+    int premierAiguillageHoraire;
+    int secondAiguillageHoraire;
+    int premierAiguillageAntiHoraire;
+    int secondAiguillageAntiHoraire;
+};
+
+#endif
+
 /**
  * @brief La classe SharedSection implémente l'interface SharedSectionInterface qui
  * propose les méthodes liées à la section partagée.
@@ -27,13 +49,12 @@ public:
      * @brief SharedSection Constructeur de la classe qui représente la section partagée.
      * Initialisez vos éventuels attributs ici, sémaphores etc.
      */
-    SharedSection(int premierAiguillageHoraire, int secondAiguillageHoraire, int premierAiguillageAntiHoraire, int secondAiguillageAntiHoraire) : 
-        mutex(),
+    SharedSection() : 
+        mutex(1),
         isUsed(false),
-        premierAiguillageHoraire(premierAiguillageHoraire),
-        secondAiguillageHoraire(secondAiguillageHoraire),
-        premierAiguillageAntiHoraire(premierAiguillageAntiHoraire),
-        secondAiguillageAntiHoraire(secondAiguillageAntiHoraire)
+        priorityMode(SharedSectionInterface::PriorityMode::HIGH_PRIORITY),
+        requestedPriorities(),
+        mutexPriority(1)
     {
         // TODO
     }
@@ -47,9 +68,12 @@ public:
      */
     void request(Locomotive& loco, int priority) override {
         // TODO
+        mutexPriority.acquire();
+        requestedPriorities.push_back(priority);
+        mutexPriority.release();
 
         // Exemple de message dans la console globale
-        afficher_message(qPrintable(QString("The engine no. %1 requested the shared section.").arg(loco.numero())));
+        afficher_message(qPrintable(QString("The engine no. %1 requested the shared section with priority %2.").arg(loco.numero()).arg(priority)));
     }
 
     /**
@@ -61,15 +85,35 @@ public:
      * @param loco La locomotive qui essaie accéder à la section partagée
      */
     void access(Locomotive &loco, int priority) override {
-        // TODO
         int vitesse = loco.vitesse();
-        if (isUsed) {
-            arreter_loco(loco.numero());
+        bool stopRequired = false;
+        while (true) {
+            mutexPriority.acquire();
+            
+            if (isUsed && !stopRequired) {
+                stopRequired = true;
+                arreter_loco(loco.numero());
+            }
+
+            std::vector<int>::iterator currentPriority = getCurrentPriority();
+            if (priority == *currentPriority) {
+                requestedPriorities.erase(currentPriority);
+                isUsed = true;
+                mutexPriority.release();
+                break;
+            }
+
+            if (!stopRequired) {
+                stopRequired = true;
+                arreter_loco(loco.numero());
+            }
+
+            mutexPriority.release();
         }
 
-        mutex.lock();
-        isUsed = true;
+        mutex.acquire();
         loco.fixerVitesse(vitesse);
+        // TODO
 
         // Exemple de message dans la console globale
         afficher_message(qPrintable(QString("The engine no. %1 accesses the shared section.").arg(loco.numero())));
@@ -82,7 +126,7 @@ public:
      */
     void leave(Locomotive& loco) override {
         isUsed = false;
-        mutex.unlock();
+        mutex.release();
         // TODO
 
         // Exemple de message dans la console globale
@@ -90,28 +134,27 @@ public:
     }
 
     void togglePriorityMode() {
-        /* TODO */
-    }
-
-    int getPremierAiguillage(bool sensHoraire) override {
-        return sensHoraire ? premierAiguillageHoraire : premierAiguillageAntiHoraire;
-    }
-
-    int getSecondAiguillage(bool sensHoraire) override {
-        return sensHoraire ? secondAiguillageHoraire : secondAiguillageAntiHoraire;
+        priorityMode = priorityMode == SharedSectionInterface::PriorityMode::HIGH_PRIORITY ?
+            SharedSectionInterface::PriorityMode::LOW_PRIORITY :
+            SharedSectionInterface::PriorityMode::HIGH_PRIORITY;
     }
 private:
 
     /* A vous d'ajouter ce qu'il vous faut */
+    std::vector<int>::iterator getCurrentPriority() {
+        return priorityMode == SharedSectionInterface::PriorityMode::HIGH_PRIORITY ?
+            std::max_element(requestedPriorities.begin(), requestedPriorities.end()) :
+            std::min_element(requestedPriorities.begin(), requestedPriorities.end());
+    }
+    // TODO Methode priority mode
 
     // Méthodes privées ...
     // Attribut privés ...
-    PcoMutex mutex;
+    PcoSemaphore mutex;
     bool isUsed;
-    int premierAiguillageHoraire;
-    int secondAiguillageHoraire;
-    int premierAiguillageAntiHoraire;
-    int secondAiguillageAntiHoraire;
+    enum SharedSectionInterface::PriorityMode priorityMode;
+    std::vector<int> requestedPriorities;
+    PcoSemaphore mutexPriority;
 };
 
 

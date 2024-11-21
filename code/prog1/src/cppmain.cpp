@@ -101,8 +101,8 @@ int cmain()
 
     // Création de la section partagée
     std::shared_ptr<SharedSectionInterface> sharedSection = std::make_shared<SharedSection>(2, 22, 21, 1);
-    struct SharedSectionAiguillages sharedSectionAiguillagesA = {7, 6, 32, 33, true};
-    struct SharedSectionAiguillages sharedSectionAiguillagesB = {3, 2, 29, 30, false};
+    struct SharedSectionAiguillages1 sharedSectionAiguillagesA = {7, 6, 32, 33, true};
+    struct SharedSectionAiguillages1 sharedSectionAiguillagesB = {3, 2, 29, 30, false};
 
     std::shared_ptr<PcoSemaphore> sem = std::make_shared<PcoSemaphore>(0);
     std::shared_ptr<PcoMutex> mutex = std::make_shared<PcoMutex>();

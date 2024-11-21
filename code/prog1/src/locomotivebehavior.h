@@ -10,6 +10,7 @@
 #include "locomotive.h"
 #include "launchable.h"
 #include "sharedstation.h"
+#include "sharedsection.h"
 #include "sharedsectioninterface.h"
 #include "pcosynchro/pcomutex.h"
 #include "pcosynchro/pcosemaphore.h"
@@ -30,7 +31,7 @@ public:
         std::shared_ptr<PcoSemaphore> sem,
         std::shared_ptr<PcoMutex> mutex,
         std::shared_ptr<std::atomic<int>> amountWaiting,
-        struct SharedSectionAiguillages sharedSectionAiguillages/*, autres paramètres éventuels */) :
+        struct SharedSectionAiguillages1 sharedSectionAiguillages/*, autres paramètres éventuels */) :
         loco(loco),
         sharedSection(sharedSection),
         station(station),
@@ -78,7 +79,7 @@ protected:
     std::shared_ptr<PcoSemaphore> sem;
     std::shared_ptr<PcoMutex> mutex;
     std::shared_ptr<std::atomic<int>> amountWaiting;
-    struct SharedSectionAiguillages sharedSectionAiguillages;
+    struct SharedSectionAiguillages1 sharedSectionAiguillages;
     bool sensHoraire;
 };
 

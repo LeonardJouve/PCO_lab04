@@ -10,14 +10,6 @@
 
 #include "locomotive.h"
 
-struct SharedSectionAiguillages {
-    int contactPremierDebut;
-    int contactPremierFin;
-    int contactSecondDebut;
-    int contactSecondFin;
-    bool doitChangerVoie;
-};
-
 /**
  * @brief La classe SharedSectionInterface est une interface (classe abstraite pure) qui définit
  * trois méthodes, request, getAccess et leave afin de gérer l'accès à une section partagée d'un

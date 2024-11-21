@@ -25,7 +25,7 @@ void LocomotiveBehavior::run()
             ++(*amountWaiting);
             loco.afficherMessage(QString("%1").arg(*amountWaiting));
             sem->release();
-            mutex->lock();
+            mutex->acquire();
             for (int i = 0; i < station.getNbTrains(); ++i) {
                 sem->acquire();
             }
@@ -34,26 +34,33 @@ void LocomotiveBehavior::run()
                 for (int i = 0; i < station.getNbTrains(); ++i) {
                     sem->release();
                 }
+                sharedSection->togglePriorityMode();
             }
             --(*amountWaiting);
-            mutex->unlock();
+            mutex->release();
 
             PcoThread::thisThread()->usleep(2'000'000);
+            setPriority(getRandomPriority());
             loco.inverserSens();
             sensHoraire = !sensHoraire;
             loco.demarrer();
             attendre_contact(station.getNumeroContactGare()); // ignore hitting station because of inhertia
         }
 
-        int contactEntree = sensHoraire ? sharedSectionAiguillages.contactPremierDebut : sharedSectionAiguillages.contactSecondDebut;
-        int contactSortie = sensHoraire ? sharedSectionAiguillages.contactSecondFin : sharedSectionAiguillages.contactPremierFin;
-        int directionPremierAiguillage = sharedSectionAiguillages.doitChangerVoie ? TOUT_DROIT : DEVIE;
-        int directionSecondAiguillage = sharedSectionAiguillages.doitChangerVoie ? DEVIE : TOUT_DROIT;
-        
+        int contactRequest = sensHoraire ? sharedSectionContacts.contactPremierRequest : sharedSectionContacts.contactSecondRequest;
+        int contactEntree = sensHoraire ? sharedSectionContacts.contactPremierDebut : sharedSectionContacts.contactSecondDebut;
+        int contactSortie = sensHoraire ? sharedSectionContacts.contactSecondFin : sharedSectionContacts.contactPremierFin;
+        int directionPremierAiguillage = sharedSectionContacts.doitChangerVoie ? TOUT_DROIT : DEVIE;
+        int directionSecondAiguillage = sharedSectionContacts.doitChangerVoie ? DEVIE : TOUT_DROIT;
+        int premierAiguillage = sensHoraire ? sharedSectionAiguillages.premierAiguillageHoraire : sharedSectionAiguillages.premierAiguillageAntiHoraire;
+        int secondAiguillage = sensHoraire ? sharedSectionAiguillages.secondAiguillageHoraire : sharedSectionAiguillages.secondAiguillageAntiHoraire;
+
+        attendre_contact(contactRequest);
+        sharedSection->request(loco, priority);
         attendre_contact(contactEntree);
-        sharedSection->access(loco);
-        diriger_aiguillage(sharedSection->getPremierAiguillage(sensHoraire), directionPremierAiguillage, 0);
-        diriger_aiguillage(sharedSection->getSecondAiguillage(sensHoraire), directionSecondAiguillage, 0);
+        sharedSection->access(loco, priority);
+        diriger_aiguillage(premierAiguillage, directionPremierAiguillage, 0);
+        diriger_aiguillage(secondAiguillage, directionSecondAiguillage, 0);
         attendre_contact(contactSortie);
         sharedSection->leave(loco);
     }
@@ -69,4 +76,12 @@ void LocomotiveBehavior::printCompletionMessage()
 {
     qDebug() << "[STOP] Thread de la loco" << loco.numero() << "a terminé correctement";
     loco.afficherMessage("J'ai terminé");
+}
+
+void LocomotiveBehavior::setPriority(int priority) {
+    this->priority = priority;
+}
+
+int LocomotiveBehavior::getRandomPriority() {
+    return std::rand() % (MAX_PRIORITY + 1);
 }

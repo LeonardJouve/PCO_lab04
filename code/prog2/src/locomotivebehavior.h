@@ -10,8 +10,8 @@
 #include "locomotive.h"
 #include "launchable.h"
 #include "sharedstation.h"
+#include "sharedsection.h"
 #include "sharedsectioninterface.h"
-#include "pcosynchro/pcomutex.h"
 #include "pcosynchro/pcosemaphore.h"
 
 /**
@@ -28,8 +28,9 @@ public:
         std::shared_ptr<SharedSectionInterface> sharedSection,
         SharedStation station,
         std::shared_ptr<PcoSemaphore> sem,
-        std::shared_ptr<PcoMutex> mutex,
+        std::shared_ptr<PcoSemaphore> mutex,
         std::shared_ptr<std::atomic<int>> amountWaiting,
+        struct SharedSectionContacts sharedSectionContacts,
         struct SharedSectionAiguillages sharedSectionAiguillages/*, autres paramètres éventuels */) :
         loco(loco),
         sharedSection(sharedSection),
@@ -37,9 +38,12 @@ public:
         sem(sem),
         mutex(mutex),
         amountWaiting(amountWaiting),
-        sharedSectionAiguillages(sharedSectionAiguillages),
-        sensHoraire(true) {
+        sharedSectionContacts(sharedSectionContacts),
+        sensHoraire(true),
+        sharedSectionAiguillages(sharedSectionAiguillages)
+    {
         // Eventuel code supplémentaire du constructeur
+        priority = getRandomPriority();
     }
 
 protected:
@@ -73,13 +77,21 @@ protected:
      *
      * Par exemple la priorité ou le parcours
      */
+    void setPriority(int priority);
+
+    static int getRandomPriority();
+
     SharedStation station;
 
     std::shared_ptr<PcoSemaphore> sem;
-    std::shared_ptr<PcoMutex> mutex;
+    std::shared_ptr<PcoSemaphore> mutex;
     std::shared_ptr<std::atomic<int>> amountWaiting;
-    struct SharedSectionAiguillages sharedSectionAiguillages;
+    struct SharedSectionContacts sharedSectionContacts;
     bool sensHoraire;
+    int priority;
+    struct SharedSectionAiguillages sharedSectionAiguillages;
+
+    static const int MAX_PRIORITY = 10;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H
