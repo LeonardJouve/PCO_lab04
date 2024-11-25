@@ -18,6 +18,7 @@
 #ifndef SHARED_SECTION_STRUCT_2
 #define SHARED_SECTION_STRUCT_2
 
+// Structure pour les points de contact
 struct SharedSectionContacts {
     int contactPremierRequest;
     int contactPremierDebut;
@@ -91,18 +92,21 @@ public:
             mutexPriority.acquire();
             
             if (isUsed && !stopRequired) {
+                //si la section est déjà  utilisée le train doit s'arrêter
                 stopRequired = true;
                 arreter_loco(loco.numero());
             }
 
             std::vector<int>::iterator currentPriority = getCurrentPriority();
             if (priority == *currentPriority) {
+                //si le train a la priorité il peut quitter la file d'attente et accéder à la section
                 requestedPriorities.erase(currentPriority);
                 isUsed = true;
                 mutexPriority.release();
                 break;
             }
 
+            //si le train n'a pas la priorité il doit attendre
             if (!stopRequired) {
                 stopRequired = true;
                 arreter_loco(loco.numero());
@@ -133,6 +137,9 @@ public:
         afficher_message(qPrintable(QString("The engine no. %1 leaves the shared section.").arg(loco.numero())));
     }
 
+    /**
+     * swicth le mode de priorité après chaque tour
+     */
     void togglePriorityMode() {
         priorityMode = priorityMode == SharedSectionInterface::PriorityMode::HIGH_PRIORITY ?
             SharedSectionInterface::PriorityMode::LOW_PRIORITY :
@@ -140,21 +147,23 @@ public:
     }
 private:
 
-    /* A vous d'ajouter ce qu'il vous faut */
+    /**
+     * determine quel train a la priorité en fonction du mode de priorité
+     * @return
+     */
     std::vector<int>::iterator getCurrentPriority() {
         return priorityMode == SharedSectionInterface::PriorityMode::HIGH_PRIORITY ?
             std::max_element(requestedPriorities.begin(), requestedPriorities.end()) :
             std::min_element(requestedPriorities.begin(), requestedPriorities.end());
     }
-    // TODO Methode priority mode
 
     // Méthodes privées ...
     // Attribut privés ...
     PcoSemaphore mutex;
-    bool isUsed;
+    bool isUsed;// indique si un train est dans la section partagée
     enum SharedSectionInterface::PriorityMode priorityMode;
-    std::vector<int> requestedPriorities;
-    PcoSemaphore mutexPriority;
+    std::vector<int> requestedPriorities;// liste des priorités des trains qui ont demandé l'accès
+    PcoSemaphore mutexPriority;// pour protéger la liste des priorités
 };
 
 
