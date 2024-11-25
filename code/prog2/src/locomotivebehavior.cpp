@@ -20,7 +20,7 @@ void LocomotiveBehavior::run()
         station.incrementeCompteurTour();
         loco.afficherMessage(QString("J'ai atteint la gare %1").arg(station.getNumeroContactGare()));
 
-        if (station.doitArreter()) {//si le train a fait tous ses tours
+        if (station.doitArreter()) {//si le train a fait tous ses tours et doit attendre les autres
             loco.arreter();
             ++(*amountWaiting);//on informe les autres threads qu'on est en attente
             loco.afficherMessage(QString("%1").arg(*amountWaiting));
@@ -48,6 +48,7 @@ void LocomotiveBehavior::run()
             attendre_contact(station.getNumeroContactGare()); // ignore hitting station because of inertia
         }
 
+        //Determiner les contacts et aiguillages à utiliser selon le sens de la locomotive
         int contactRequest = sensHoraire ? sharedSectionContacts.contactPremierRequest : sharedSectionContacts.contactSecondRequest;
         int contactEntree = sensHoraire ? sharedSectionContacts.contactPremierDebut : sharedSectionContacts.contactSecondDebut;
         int contactSortie = sensHoraire ? sharedSectionContacts.contactSecondFin : sharedSectionContacts.contactPremierFin;
@@ -56,13 +57,20 @@ void LocomotiveBehavior::run()
         int premierAiguillage = sensHoraire ? sharedSectionAiguillages.premierAiguillageHoraire : sharedSectionAiguillages.premierAiguillageAntiHoraire;
         int secondAiguillage = sensHoraire ? sharedSectionAiguillages.secondAiguillageHoraire : sharedSectionAiguillages.secondAiguillageAntiHoraire;
 
+        //Etape 1: Demander l'accès à la section partagée
         attendre_contact(contactRequest);
         sharedSection->request(loco, priority);
+
+        //Etape 2: Attendre l'accès à la section partagée (peut être immédiat si la section est libre ou le train a la priorité)
         attendre_contact(contactEntree);
         sharedSection->access(loco, priority);
+
+        //Etape 3: Traverser la section partagée
         diriger_aiguillage(premierAiguillage, directionPremierAiguillage, 0);
         diriger_aiguillage(secondAiguillage, directionSecondAiguillage, 0);
         attendre_contact(contactSortie);
+
+        //Etape 4: Quitter la section partagée et signaler que la voie est libre
         sharedSection->leave(loco);
     }
 }

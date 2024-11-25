@@ -69,7 +69,6 @@ public:
      * @param entryPoint Le point d'entree de la locomotive qui fait l'appel
      */
     void request(Locomotive& loco, int priority) override {
-        // TODO
         mutexPriority.acquire();
         requestedPriorities.push_back(priority);
         mutexPriority.release();
@@ -89,7 +88,7 @@ public:
     void access(Locomotive &loco, int priority) override {
         int vitesse = loco.vitesse();
         bool stopRequired = false;
-        while (true) {
+        while (true) {//boucle active pour attendre que le train puisse passer
             mutexPriority.acquire();
             
             if (isUsed && !stopRequired) {
@@ -98,7 +97,7 @@ public:
                 arreter_loco(loco.numero());
             }
 
-            std::vector<int>::iterator currentPriority = getCurrentPriority();
+            auto currentPriority = getCurrentPriority();
             if (priority == *currentPriority) {
                 //si le train a la priorité il peut quitter la file d'attente et accéder à la section
                 requestedPriorities.erase(currentPriority);
@@ -150,7 +149,7 @@ private:
 
     /**
      * determine quel train a la priorité en fonction du mode de priorité
-     * @return
+     * @return un itérateur sur la priorité du train
      */
     std::vector<int>::iterator getCurrentPriority() {
         return priorityMode == SharedSectionInterface::PriorityMode::HIGH_PRIORITY ?
