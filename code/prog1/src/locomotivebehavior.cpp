@@ -20,10 +20,11 @@ void LocomotiveBehavior::run()
         station.incrementeCompteurTour();
         loco.afficherMessage(QString("J'ai atteint la gare %1").arg(station.getNumeroContactGare()));
 
-        if (station.doitArreter()) {
+        if (station.doitArreter()) {//si le train a fait tous ses tours
             loco.arreter();
-            ++(*amountWaiting);
+            ++(*amountWaiting);//on informe les autres threads qu'on est en attente
             loco.afficherMessage(QString("%1").arg(*amountWaiting));
+
             sem->release();
             mutex->lock();
             for (int i = 0; i < station.getNbTrains(); ++i) {
@@ -31,6 +32,7 @@ void LocomotiveBehavior::run()
             }
 
             if (*amountWaiting != 1) {
+              //si ce train est le dernier à s'arrêter, on réveille tous les autres
                 for (int i = 0; i < station.getNbTrains(); ++i) {
                     sem->release();
                 }
@@ -42,7 +44,7 @@ void LocomotiveBehavior::run()
             loco.inverserSens();
             sensHoraire = !sensHoraire;
             loco.demarrer();
-            attendre_contact(station.getNumeroContactGare()); // ignore hitting station because of inhertia
+            attendre_contact(station.getNumeroContactGare()); // ignore hitting station again because of inertia
         }
 
         int contactEntree = sensHoraire ? sharedSectionAiguillages.contactPremierDebut : sharedSectionAiguillages.contactSecondDebut;
