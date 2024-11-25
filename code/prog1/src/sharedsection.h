@@ -18,7 +18,10 @@
 #ifndef SHARED_SECTION_STRUCT_1
 #define SHARED_SECTION_STRUCT_1
 
-struct SharedSectionAiguillages1 {
+/**
+ * Contient en bloc les numéros des aiguillages qui concerne un train
+ */
+struct SharedSectionAiguillages {
     int contactPremierDebut;
     int contactPremierFin;
     int contactSecondDebut;
@@ -81,7 +84,7 @@ public:
      */
     void leave(Locomotive& loco) override {
         isUsed = false;
-        mutex.release();
+        mutex.release()
         // TODO
 
         // Exemple de message dans la console globale
@@ -101,8 +104,10 @@ private:
 
     // Méthodes privées ...
     // Attribut privés ...
-    PcoSemaphore mutex;
-    bool isUsed;
+    PcoSemaphore mutex;//protège l'accès à la section partagée
+    bool isUsed;//indique si un train est dans la section partagée
+
+    //les aiguillages d'entrée et de sortie de la section partagée
     int premierAiguillageHoraire;
     int secondAiguillageHoraire;
     int premierAiguillageAntiHoraire;

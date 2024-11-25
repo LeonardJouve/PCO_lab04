@@ -10,9 +10,28 @@ public:
 
     /* Implémentez toute la logique que vous avez besoin pour que les locomotives
      * s'attendent correctement à la station */
+
+    /**
+     * getter pour le numero de contact de la gare
+     * @return
+     */
     int getNumeroContactGare();
+
+    /**
+     * getter pour le nombre de trains qui passent par le segment partagé
+     * @return
+     */
     int getNbTrains();
+
+    /**
+     * incremente le compteur de tour quand un train passe à sa gare
+     */
     void incrementeCompteurTour();
+
+    /**
+     * determine si un train doit s'arreter à la gare
+     * @return
+     */
     bool doitArreter();
 
 private:
