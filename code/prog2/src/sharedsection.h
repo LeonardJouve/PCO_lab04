@@ -18,7 +18,7 @@
 #ifndef SHARED_SECTION_STRUCT_2
 #define SHARED_SECTION_STRUCT_2
 
-// Structure pour les points de contact
+// Structure pour les points de contact avant la section partagée
 struct SharedSectionContacts {
     int contactPremierRequest;
     int contactPremierDebut;
@@ -29,6 +29,7 @@ struct SharedSectionContacts {
     bool doitChangerVoie;
 };
 
+// Structure pour les aiguillages autour de la section partagée
 struct SharedSectionAiguillages {
     int premierAiguillageHoraire;
     int secondAiguillageHoraire;

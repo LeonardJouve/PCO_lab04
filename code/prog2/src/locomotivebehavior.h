@@ -79,17 +79,23 @@ protected:
      */
     void setPriority(int priority);
 
+    /**
+     * Génère une nouvelle priorité aléatoire entre 1 et MAX_PRIORITY (10)
+     * @return
+     */
     static int getRandomPriority();
 
-    SharedStation station;
+    SharedStation station;//la station où la locomotive doit s'arrêter
 
+    //ressources partagées entres les threads
     std::shared_ptr<PcoSemaphore> sem;
     std::shared_ptr<PcoSemaphore> mutex;
     std::shared_ptr<std::atomic<int>> amountWaiting;
-    struct SharedSectionContacts sharedSectionContacts;
+
+    struct SharedSectionContacts sharedSectionContacts;//les points de contacts d'access et request avant la section partagée
     bool sensHoraire;
     int priority;
-    struct SharedSectionAiguillages sharedSectionAiguillages;
+    struct SharedSectionAiguillages sharedSectionAiguillages;//les aiguillages autour de la section partagée
 
     static const int MAX_PRIORITY = 10;
 };
